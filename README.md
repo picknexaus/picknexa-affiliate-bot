@@ -1,0 +1,1 @@
+# picknexa-affiliate-bot
