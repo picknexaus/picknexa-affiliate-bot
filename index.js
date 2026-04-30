@@ -5,7 +5,7 @@ const WP_URL = process.env.WP_URL;
 const USER = process.env.USER;
 const APP_PASS = process.env.APP_PASS;
 
-// ===== 6 AFFILIATE LINKS =====
+// ===== AFFILIATE LINKS =====
 const LINKS = [
   "https://collshp.com/shopeviet/category/3541311?view=storefront",
   "https://collshp.com/shopeviet/category/3541342?view=storefront",
@@ -15,18 +15,18 @@ const LINKS = [
   "https://collshp.com/shopeviet/category/3682260?view=storefront"
 ];
 
-// ===== KEYWORDS (QUẦN ÁO) =====
+// ===== KEYWORDS =====
 const keywords = [
   "áo sơ mi nam",
   "váy nữ đẹp",
   "quần jean nam",
   "thời trang Hàn Quốc",
-  "áo thun basic",
-  "set đồ nữ hot trend"
+  "set đồ nữ",
+  "áo thun basic"
 ];
 
 // ===== RANDOM PRODUCT =====
-function generatePost() {
+function getPostData() {
   const kw = keywords[Math.floor(Math.random() * keywords.length)];
   const link = LINKS[Math.floor(Math.random() * LINKS.length)];
 
@@ -42,18 +42,17 @@ function buildContent(p) {
   return `
     <h1>${p.title}</h1>
 
-    <p><b>Từ khóa:</b> ${p.keyword}</p>
+    <p><b>Danh mục:</b> ${p.keyword}</p>
 
     <p>
-      🔥 Sản phẩm thời trang đang giảm giá mạnh hôm nay.
-      Số lượng có hạn.
+      🔥 Sản phẩm đang giảm giá mạnh, số lượng có hạn.
     </p>
 
-    <h2>Ưu điểm</h2>
+    <h2>Lý do nên xem</h2>
     <ul>
+      <li>Hot trend 2026</li>
       <li>Giá tốt</li>
-      <li>Hot trend</li>
-      <li>Freeship (tùy shop)</li>
+      <li>Nhiều người quan tâm</li>
     </ul>
 
     <a href="${p.link}" target="_blank">
@@ -62,21 +61,20 @@ function buildContent(p) {
   `;
 }
 
-// ===== POST WORDPRESS =====
+// ===== POST =====
 async function post() {
-  const product = generatePost();
+  const p = getPostData();
 
   const auth = Buffer.from(`${USER}:${APP_PASS}`).toString("base64");
 
   try {
-    console.log("👉 POST:", product.title);
-    console.log("🔗 LINK:", product.link);
+    console.log("🚀 POST:", p.title);
 
     const res = await axios.post(
       WP_URL,
       {
-        title: product.title,
-        content: buildContent(product),
+        title: p.title,
+        content: buildContent(p),
         status: "publish"
       },
       {
@@ -88,17 +86,8 @@ async function post() {
 
     console.log("✅ SUCCESS ID:", res.data.id);
   } catch (err) {
-    console.log("❌ ERROR:", err.response?.status, err.message);
+    console.log("❌ ERROR:", err.response?.status || err.message);
   }
 }
 
-// ===== RUN =====
-async function run() {
-  console.log("🚀 AUTO AFFILIATE SYSTEM START");
-
-  await post();
-
-  console.log("🎯 DONE");
-}
-
-run();
+post();
