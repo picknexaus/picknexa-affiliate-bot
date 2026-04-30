@@ -13,10 +13,30 @@ const AD_SCRIPT = `<script type='text/javascript' src='//www.profitablecpmratene
 
 // ====== LAY SAN PHAM ======
 async function getProducts() {
-    const res = await axios.get("https://api.accesstrade.vn/v1/datafeeds?limit=5", {
-        headers: {
-            Authorization: "Token " + ACCESS_API
+    try {
+        const res = await axios.get("https://api.accesstrade.vn/v1/datafeeds", {
+            headers: {
+                "Authorization": "Token " + ACCESS_API,
+                "Content-Type": "application/json"
+            },
+            params: {
+                limit: 5
+            }
+        });
+
+        console.log("DATA:", JSON.stringify(res.data));
+
+        if(res.data && res.data.data){
+            return res.data.data;
+        }else{
+            return [];
         }
+
+    } catch(err){
+        console.log("ACCESSTRADE ERROR:", err.response ? err.response.data : err.message);
+        return [];
+    }
+}
     });
     return res.data.data;
 }
@@ -60,9 +80,14 @@ async function postWordpress(title, content){
 async function runBot(){
     const products = await getProducts();
 
+    if(products.length === 0){
+        console.log("Không lấy được sản phẩm từ ACCESSTRADE");
+        return;
+    }
+
     for (let product of products){
         const html = makeContent(product);
-        await postWordpress(product.name, html);
+        await postWordpress(product.name || "Sản phẩm hot hôm nay", html);
     }
 }
 
