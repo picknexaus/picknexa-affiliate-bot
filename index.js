@@ -1,101 +1,65 @@
-const axios = require("axios");
+const axios = require('axios');
 
-// ===== WORDPRESS =====
-const WP_URL = process.env.WP_URL;
-const USER = process.env.USER;
-const APP_PASS = process.env.APP_PASS;
-
-// ===== ACCESSTRADE LINK =====
-const AFF_LINK =
-  "https://fast.accesstrade.com.vn/deep_link/v6/6969678484958443485/5087153089503673507?sub4=oneatweb&url_enc=aHR0cHM6Ly93d3cubGF6YWRhLnZuLz9yZWZlcmVyPWF0LWtvbA%3D%3D";
-
-// ===== TRACKING MEMORY (tạm thời RAM) =====
-let tracking = {
-  clicks: 0,
-  posts: 0
+// Cấu hình từ GitHub Secrets
+const config = {
+    username: process.env.USER,
+    password: process.env.APP_PASS,
+    wpUrl: process.env.WP_URL.replace(/\/$/, "") + "/wp-json/wp/v2/posts", // Tự động sửa lỗi thiếu/thừa dấu gạch chéo
+    tikiLinks: [
+        "https://ti.ki/AVARxdrq/BYFTWCJX", "https://ti.ki/3QJR1sXj/BYFTWCJX",
+        "https://ti.ki/Oc2NNhea/BYFTWCJX", "https://ti.ki/4qh1kk3m/BYFTWCJX",
+        "https://ti.ki/MMlKZDJE/BYFTWCJX", "https://ti.ki/Fz0LrsMG/BYFTWCJX",
+        "https://ti.ki/vco1qLoR/BYFTWCJX", "https://ti.ki/koYLFPe8/BYFTWCJX",
+        "https://ti.ki/5JTf8xmY/BYFTWCJX", "https://ti.ki/jHolCIrZ/BYFTWCJX",
+        "https://ti.ki/eCmSVMkH/BYFTWCJX", "https://ti.ki/6ayVdofN/BYFTWCJX",
+        "https://ti.ki/eakZlxem/BYFTWCJX", "https://ti.ki/vL3PUsue/BYFTWCJX",
+        "https://ti.ki/fV3MFGrk/BYFTWCJX", "https://ti.ki/jTiA1Nbd/BYFTWCJX",
+        "https://ti.ki/qIrxviEx/BYFTWCJX", "https://ti.ki/CccTGPPQ/BYFTWCJX"
+    ]
 };
 
-// ===== KEYWORDS =====
-const keywords = [
-  "thời trang nam",
-  "thời trang nữ",
-  "váy đẹp",
-  "áo sơ mi",
-  "quần jean",
-  "set đồ hot trend"
-];
+async function postToWordPress() {
+    // Lấy ngẫu nhiên 1 link để đăng bài
+    const randomLink = config.tikiLinks[Math.floor(Math.random() * config.tikiLinks.length)];
+    
+    const postData = {
+        title: `🔥 Top Sản Phẩm Tiki Ưu Đãi Cực Sốc - Đừng Bỏ Lỡ!`,
+        content: `
+            <p>Chào các bạn, mình vừa săn được một sản phẩm cực hời trên Tiki gửi đến cả nhà!</p>
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="${randomLink}" target="_blank" rel="nofollow" 
+                   style="background-color: #ff424e; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                   XEM CHI TIẾT VÀ MUA TẠI TIKI
+                </a>
+            </div>
+            <p>Sản phẩm đang có giá rất tốt, hãy nhanh tay vì chương trình có thể kết thúc sớm!</p>
+        `,
+        status: 'publish'
+    };
 
-// ===== AI CONTENT =====
-function generate() {
-  const kw = keywords[Math.floor(Math.random() * keywords.length)];
+    try {
+        console.log(`🚀 Đang kiểm tra kết nối tới: ${config.wpUrl}...`);
+        const response = await axios.post(config.wpUrl, postData, {
+            auth: {
+                username: config.username,
+                password: config.password
+            },
+            timeout: 10000 // Chờ tối đa 10 giây
+        });
 
-  return {
-    title: `🔥 ${kw.toUpperCase()} - Xu hướng bán chạy`,
-    keyword: kw,
-    link: AFF_LINK
-  };
-}
-
-// ===== TRACKING LINK WRAPPER =====
-function trackLink(url) {
-  tracking.clicks++;
-  console.log("📊 CLICK COUNT:", tracking.clicks);
-  return url;
-}
-
-// ===== CONTENT =====
-function buildContent(p) {
-  return `
-    <h1>${p.title}</h1>
-
-    <p><b>Danh mục:</b> ${p.keyword}</p>
-
-    <p>
-      🔥 Sản phẩm đang trend mạnh trên thị trường affiliate.
-    </p>
-
-    <h2>Lý do nên xem</h2>
-    <ul>
-      <li>Hot trend</li>
-      <li>Giá tốt</li>
-      <li>Nhiều người quan tâm</li>
-    </ul>
-
-    <a href="${trackLink(p.link)}" target="_blank">
-      👉 XEM NGAY DEAL
-    </a>
-  `;
-}
-
-// ===== POST WORDPRESS =====
-async function post() {
-  const p = generate();
-  tracking.posts++;
-
-  const auth = Buffer.from(`${USER}:${APP_PASS}`).toString("base64");
-
-  try {
-    console.log("🚀 POST:", p.title);
-
-    const res = await axios.post(
-      WP_URL,
-      {
-        title: p.title,
-        content: buildContent(p),
-        status: "publish"
-      },
-      {
-        headers: {
-          Authorization: `Basic ${auth}`
+        if (response.status === 201) {
+            console.log(`✅ THÀNH CÔNG: Bài viết đã được đăng lên Picknexa.net!`);
+            console.log(`🔗 Link bài: ${response.data.link}`);
         }
-      }
-    );
-
-    console.log("✅ POST ID:", res.data.id);
-    console.log("📦 TOTAL POSTS:", tracking.posts);
-  } catch (err) {
-    console.log("❌ ERROR:", err.response?.status || err.message);
-  }
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            console.error("❌ LỖI: Website phản hồi quá chậm (Timeout). Vui lòng kiểm tra Hosting.");
+        } else if (error.response && error.response.status === 401) {
+            console.error("❌ LỖI: Sai Username hoặc Application Password.");
+        } else {
+            console.error(`❌ LỖI KHÔNG XÁC ĐỊNH: ${error.message}`);
+        }
+    }
 }
 
-post();
+postToWordPress();
