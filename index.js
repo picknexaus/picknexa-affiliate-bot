@@ -5,36 +5,42 @@ const WP_URL = process.env.WP_URL;
 const USER = process.env.USER;
 const APP_PASS = process.env.APP_PASS;
 
-// ===== AFFILIATE LINKS =====
-const LINKS = [
-  "https://collshp.com/shopeviet/category/3541311?view=storefront",
-  "https://collshp.com/shopeviet/category/3541342?view=storefront",
-  "https://collshp.com/shopeviet/category/3541405?view=storefront",
-  "https://collshp.com/shopeviet/category/3682118?view=storefront",
-  "https://collshp.com/shopeviet/category/3682155?view=storefront",
-  "https://collshp.com/shopeviet/category/3682260?view=storefront"
-];
+// ===== ACCESSTRADE LINK =====
+const AFF_LINK =
+  "https://fast.accesstrade.com.vn/deep_link/v6/6969678484958443485/5087153089503673507?sub4=oneatweb&url_enc=aHR0cHM6Ly93d3cubGF6YWRhLnZuLz9yZWZlcmVyPWF0LWtvbA%3D%3D";
+
+// ===== TRACKING MEMORY (tạm thời RAM) =====
+let tracking = {
+  clicks: 0,
+  posts: 0
+};
 
 // ===== KEYWORDS =====
 const keywords = [
-  "áo sơ mi nam",
-  "váy nữ đẹp",
-  "quần jean nam",
-  "thời trang Hàn Quốc",
-  "set đồ nữ",
-  "áo thun basic"
+  "thời trang nam",
+  "thời trang nữ",
+  "váy đẹp",
+  "áo sơ mi",
+  "quần jean",
+  "set đồ hot trend"
 ];
 
-// ===== RANDOM PRODUCT =====
-function getPostData() {
+// ===== AI CONTENT =====
+function generate() {
   const kw = keywords[Math.floor(Math.random() * keywords.length)];
-  const link = LINKS[Math.floor(Math.random() * LINKS.length)];
 
   return {
-    title: `🔥 ${kw.toUpperCase()} - Deal hot hôm nay`,
+    title: `🔥 ${kw.toUpperCase()} - Xu hướng bán chạy`,
     keyword: kw,
-    link: link
+    link: AFF_LINK
   };
+}
+
+// ===== TRACKING LINK WRAPPER =====
+function trackLink(url) {
+  tracking.clicks++;
+  console.log("📊 CLICK COUNT:", tracking.clicks);
+  return url;
 }
 
 // ===== CONTENT =====
@@ -45,25 +51,26 @@ function buildContent(p) {
     <p><b>Danh mục:</b> ${p.keyword}</p>
 
     <p>
-      🔥 Sản phẩm đang giảm giá mạnh, số lượng có hạn.
+      🔥 Sản phẩm đang trend mạnh trên thị trường affiliate.
     </p>
 
     <h2>Lý do nên xem</h2>
     <ul>
-      <li>Hot trend 2026</li>
+      <li>Hot trend</li>
       <li>Giá tốt</li>
       <li>Nhiều người quan tâm</li>
     </ul>
 
-    <a href="${p.link}" target="_blank">
+    <a href="${trackLink(p.link)}" target="_blank">
       👉 XEM NGAY DEAL
     </a>
   `;
 }
 
-// ===== POST =====
+// ===== POST WORDPRESS =====
 async function post() {
-  const p = getPostData();
+  const p = generate();
+  tracking.posts++;
 
   const auth = Buffer.from(`${USER}:${APP_PASS}`).toString("base64");
 
@@ -84,7 +91,8 @@ async function post() {
       }
     );
 
-    console.log("✅ SUCCESS ID:", res.data.id);
+    console.log("✅ POST ID:", res.data.id);
+    console.log("📦 TOTAL POSTS:", tracking.posts);
   } catch (err) {
     console.log("❌ ERROR:", err.response?.status || err.message);
   }
