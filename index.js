@@ -1,65 +1,75 @@
-const axios = require('axios');
+const axios = require("axios");
 
-// Cấu hình từ GitHub Secrets
-const config = {
-    username: process.env.USER,
-    password: process.env.APP_PASS,
-    wpUrl: process.env.WP_URL.replace(/\/$/, "") + "/wp-json/wp/v2/posts", // Tự động sửa lỗi thiếu/thừa dấu gạch chéo
-    tikiLinks: [
-        "https://ti.ki/AVARxdrq/BYFTWCJX", "https://ti.ki/3QJR1sXj/BYFTWCJX",
-        "https://ti.ki/Oc2NNhea/BYFTWCJX", "https://ti.ki/4qh1kk3m/BYFTWCJX",
-        "https://ti.ki/MMlKZDJE/BYFTWCJX", "https://ti.ki/Fz0LrsMG/BYFTWCJX",
-        "https://ti.ki/vco1qLoR/BYFTWCJX", "https://ti.ki/koYLFPe8/BYFTWCJX",
-        "https://ti.ki/5JTf8xmY/BYFTWCJX", "https://ti.ki/jHolCIrZ/BYFTWCJX",
-        "https://ti.ki/eCmSVMkH/BYFTWCJX", "https://ti.ki/6ayVdofN/BYFTWCJX",
-        "https://ti.ki/eakZlxem/BYFTWCJX", "https://ti.ki/vL3PUsue/BYFTWCJX",
-        "https://ti.ki/fV3MFGrk/BYFTWCJX", "https://ti.ki/jTiA1Nbd/BYFTWCJX",
-        "https://ti.ki/qIrxviEx/BYFTWCJX", "https://ti.ki/CccTGPPQ/BYFTWCJX"
-    ]
-};
+// ===== WORDPRESS LOGIN THẬT =====
+const WP_URL = "https://picknexa.net/wp-json/wp/v2/posts";
+const USER = "adminPickNexa";
+const APP_PASS = "GJEY Sr5W bHeo wk8Y Pp75 nOl7"; // mật khẩu admin hiện tại
 
-async function postToWordPress() {
-    // Lấy ngẫu nhiên 1 link để đăng bài
-    const randomLink = config.tikiLinks[Math.floor(Math.random() * config.tikiLinks.length)];
-    
-    const postData = {
-        title: `🔥 Top Sản Phẩm Tiki Ưu Đãi Cực Sốc - Đừng Bỏ Lỡ!`,
-        content: `
-            <p>Chào các bạn, mình vừa săn được một sản phẩm cực hời trên Tiki gửi đến cả nhà!</p>
-            <div style="text-align: center; margin: 20px 0;">
-                <a href="${randomLink}" target="_blank" rel="nofollow" 
-                   style="background-color: #ff424e; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                   XEM CHI TIẾT VÀ MUA TẠI TIKI
-                </a>
-            </div>
-            <p>Sản phẩm đang có giá rất tốt, hãy nhanh tay vì chương trình có thể kết thúc sớm!</p>
-        `,
-        status: 'publish'
-    };
+// ===== ACCESSTRADE LINK =====
+const AFF_LINK =
+  "https://fast.accesstrade.com.vn/deep_link/v6/6969678484958443485/5087153089503673507?sub4=oneatweb&url_enc=aHR0cHM6Ly93d3cubGF6YWRhLnZuLz9yZWZlcmVyPWF0LWtvbA%3D%3D";
 
-    try {
-        console.log(`🚀 Đang kiểm tra kết nối tới: ${config.wpUrl}...`);
-        const response = await axios.post(config.wpUrl, postData, {
-            auth: {
-                username: config.username,
-                password: config.password
-            },
-            timeout: 10000 // Chờ tối đa 10 giây
-        });
+// ===== KEYWORDS =====
+const keywords = [
+  "áo sơ mi nam",
+  "váy nữ đẹp",
+  "quần jean nam",
+  "set đồ nữ hot",
+  "thời trang công sở",
+  "đầm nữ cao cấp"
+];
 
-        if (response.status === 201) {
-            console.log(`✅ THÀNH CÔNG: Bài viết đã được đăng lên Picknexa.net!`);
-            console.log(`🔗 Link bài: ${response.data.link}`);
-        }
-    } catch (error) {
-        if (error.code === 'ECONNABORTED') {
-            console.error("❌ LỖI: Website phản hồi quá chậm (Timeout). Vui lòng kiểm tra Hosting.");
-        } else if (error.response && error.response.status === 401) {
-            console.error("❌ LỖI: Sai Username hoặc Application Password.");
-        } else {
-            console.error(`❌ LỖI KHÔNG XÁC ĐỊNH: ${error.message}`);
-        }
-    }
+function makePost() {
+  const kw = keywords[Math.floor(Math.random() * keywords.length)];
+
+  return {
+    title: `🔥 ${kw.toUpperCase()} - Deal hot hôm nay`,
+    content: `
+      <h1>🔥 ${kw.toUpperCase()} - Deal hot hôm nay</h1>
+
+      <p>Sản phẩm đang được quan tâm rất nhiều trên thị trường.</p>
+
+      <ul>
+        <li>Giá đang giảm sâu</li>
+        <li>Mẫu mã hot trend</li>
+        <li>Số lượng có hạn</li>
+      </ul>
+
+      <p>
+        <a href="${AFF_LINK}" target="_blank">👉 XEM CHI TIẾT DEAL TẠI ĐÂY</a>
+      </p>
+    `
+  };
 }
 
-postToWordPress();
+async function postToWP() {
+  const p = makePost();
+
+  const auth = Buffer.from(`${USER}:${APP_PASS}`).toString("base64");
+
+  try {
+    console.log("🚀 Đang đăng:", p.title);
+
+    const res = await axios.post(
+      WP_URL,
+      {
+        title: p.title,
+        content: p.content,
+        status: "publish"
+      },
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          "Content-Type": "application/json"
+        },
+        timeout: 15000
+      }
+    );
+
+    console.log("✅ Đăng thành công ID:", res.data.id);
+  } catch (err) {
+    console.log("❌ Lỗi:", err.response?.status, err.response?.data || err.message);
+  }
+}
+
+postToWP();
