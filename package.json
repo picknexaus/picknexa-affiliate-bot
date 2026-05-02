@@ -2,9 +2,6 @@
   "name": "wpbot",
   "version": "1.0.0",
   "dependencies": {
-    "wordpress-xmlrpc": "^1.2.1"
-  },
-  "scripts": {
-    "start": "node index.js"
+    "axios": "^1.6.8"
   }
 }
